@@ -63,20 +63,19 @@ class GameMap:
             return False
         return True
 
-    def find_nearest_poi(self):
+    def find_poi_list(self):
         possible_poi = []
         if not self.player.have_axe and len(self.axe_loc):
-            possible_poi += self._find_nearest_poi(self.axe_loc)
+            possible_poi += list(self.axe_loc)
         if not self.player.have_key and len(self.key_loc):
-            possible_poi += self._find_nearest_poi(self.key_loc)
+            possible_poi += list(self.key_loc)
         if self.player.have_key and len(self.door_loc):
-            possible_poi += self._find_nearest_poi(self.door_loc)
+            possible_poi += list(self.door_loc)
         if len(self.stone_loc):
-            possible_poi += self._find_nearest_poi(self.stone_loc)
+            possible_poi += list(self.stone_loc)
         if not self.player.have_raft and len(self.tree_loc):
-            possible_poi += self._find_nearest_poi(self.tree_loc)
-        possible_poi = sorted(possible_poi, key=lambda x: x[2])
-        # Now have a list of POI but need to see if path is possible
+            possible_poi += list(self.tree_loc)
+        return possible_poi
 
     def _find_nearest_poi(self, pois):
         pos = self.player.get_position()
