@@ -39,8 +39,10 @@ class Path:
             wtime_ida = max((wtime_ida, overall_time))
             print(f'Time to IDA: {overall_time} worst: {wtime_ida}')
             if path:
+                self.path = path[1::]
                 print(f'len {len(path)} {path}')
-                print(bound)
+                self.find_steps()
+                print(f'Find steps IDA: {self.steps}')
 
         wtime_bfs = 0
         stime = time()
@@ -62,11 +64,92 @@ class Path:
         # Currently will just turn right if forwards doesnt get closer to goal
         return 'r'
 
+    def find_path_to_goal(self, goal):
+        stime = time()
+        ida = IdaStar(self.game_map, goal)
+        path, bound = ida.ida_star()
+        overall_time = time() - stime
+        print(f'Time to IDA: {overall_time}')
+        if path:
+            self.path = path[1::]
+            print(f'len {len(path)} {path}')
+            self.find_steps()
+            print(f'Find steps IDA: {self.steps}')
+        return self.has_steps()
+
+    def find_path_to_poi(self):
+        stime = time()
+        bfs = Bfs(self.game_map)
+        path = bfs.find_nearest_poi()
+        overall_time = time() - stime
+        print(f'Time to BFS: {overall_time}')
+        if path:
+            self.path = path[1::]
+            print(f'BFS path to POI {len(path)}: {path}')
+            self.find_steps()
+            print(f'Find steps BFS: {self.steps}')
+        return self.has_steps()
+
+    def find_path_to_explore(self):
+        stime = time()
+        bfs = Bfs(self.game_map)
+        path = bfs.find_nearest_unexplored()
+        overall_time = time() - stime
+        print(f'Time to BFS: {overall_time}')
+        if path:
+            self.path = path[1::]
+            print(f'BFS path to unexplored {len(path)}: {path}')
+            self.find_steps()
+            print(f'Find steps BFS: {self.steps}')
+        return self.has_steps()
+
+    def next_step(self):
+        if self.has_steps():
+            return self.steps.pop(0)
+        else:
+            return ''
+
+    def has_steps(self):
+        return len(self.steps)
+
     def find_steps(self):
         # Can only create steps if there is a path to follow
         if len(self.path):
-            # Need to convert path into steps
-            pass
+            self.steps = []
+            current_pos = self.player.get_position()
+            current_facing = current_pos[2]
+
+            for new_pos in self.path:
+                # Turn if needed
+                change_facing = self.player.change_facing(current_pos, new_pos, current_facing)
+                if change_facing[0] != 0:
+                    current_facing = change_facing[1]
+                    turn_dir = 'l' if change_facing[0] < 0 else 'r'
+                    for _ in range(abs(change_facing[0])):
+                        self.steps.append(turn_dir)
+                # Determine what is in front of agent
+                new_tile = self.game_map.map[new_pos[1]][new_pos[0]]
+                # Use tool if needed
+                if new_tile == '-':
+                    if self.player.have_key:
+                        self.steps.append('u')
+                    else:
+                        break
+                if new_tile == 'T':
+                    if self.player.have_axe:
+                        self.steps.append('c')
+                    else:
+                        break
+                # Move forward if possible
+                current_tile = self.game_map.map[current_pos[1]][current_pos[0]]
+                if new_tile in ['*', '.', '']:
+                    break
+                self.steps.append('f')
+                current_pos = new_pos
+                    
+                
+                
+            
 
 '''
 Basic implementation of BFS using ideas from 9021 quiz 8 implementation
@@ -101,6 +184,7 @@ class Bfs:
                 new_pos = (pos[0] + dir_mod[0], pos[1] + dir_mod[1])
                 # If new_pos in goal_coords hopefully have shortest path to a goal
                 if goal_coords is not None and new_pos in goal_coords:
+                    queue.append((path + [new_pos], stone_rafts))
                     found = True
                     break
                 # Check if new position is unexplored, this is the goal
@@ -161,10 +245,13 @@ class IdaStar:
         self.player = self.game_map.player
         self.goal = goal
 
-    def ida_star(self):
+    def ida_star(self, cross_divide = [0, False]):
+        # cross_divide means going from land -> water or water -> land
+        # only if it is possible, will expect a list with number of
+        # stones and if have a raft
         current_pos = self.player.get_position()
         bound = self._manhattan_distance(current_pos, self.goal)
-        path = [current_pos]
+        path = [(current_pos[0], current_pos[1], cross_divide[0], cross_divide[1])]
         while True:
             search_result = self.search(path, 0, bound)
             if search_result == True:
@@ -175,6 +262,8 @@ class IdaStar:
 
     def search(self, path, g, bound):
         current_pos = path[-1]
+        #num_stones = current_pos[2]
+        #have_boat  = current_pos[3]
         f = g + self._manhattan_distance(current_pos, self.goal)
         if f > bound:
             return f
@@ -184,7 +273,7 @@ class IdaStar:
         successors = self._successors(current_pos, self.goal)
         for successor in successors:
             if successor not in path:
-                path.append(successor)
+                path.append((successor[0], successor[1], successor[2], successor[3]))
                 search_result = self.search(path, g + self._cost(current_pos, successor), bound)
                 if search_result == True:
                     return True
@@ -206,7 +295,24 @@ class IdaStar:
     def _sucessor(self, current_pos, goal):
         mh = self._manhattan_distance(current_pos, goal)
         return current_pos[0], current_pos[1], mh
-        
+
+    def _valid_move(self, current_pos, new_pos):
+        current_tile = self.game_map.map[current_pos[1]][current_pos[0]]
+        new_tile = self.game_map.map[new_pos[1]][new_pos[0]]
+
+        if current_tile == '~' and new_tile == '~':
+            return current_pos
+        if current_tile != '~' and new_tile == '~' and current_pos[2]:
+            return (current_pos[0], current_pos[1], current_pos[2] - 1, current_pos[3])
+        if current_tile != '~' and new_tile == '~' and current_pos[3]:
+            return (current_pos[0], current_pos[1], current_pos[2], False)
+
+        if (new_tile == '-' and self.player.have_key) or \
+           (new_tile == 'T' and self.player.have_axe) or \
+           new_tile in ['a', 'k', 'o', 'O', '$', ' ']:
+            return current_pos
+        return False
+            
 
     def _successors(self, current_pos, goal):
         x, y = current_pos[0], current_pos[1]
@@ -214,11 +320,13 @@ class IdaStar:
         # Need to return coords not just manhattan distance
         # then need to sort based on distance
         
-        successors.append(self._sucessor((x + 1, y), goal))
-        successors.append(self._sucessor((x - 1, y), goal))
-        successors.append(self._sucessor((x, y + 1), goal))
-        successors.append(self._sucessor((x, y - 1), goal))
-        return sorted(successors, key=lambda x: x[2])
+        for d in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            updated_pos = self._valid_move(current_pos, (x + d[0], y + d[1]))
+            if updated_pos:
+                successor = self._sucessor((x + d[0], y + d[1]), goal)
+                successors.append((successor[0], successor[1], updated_pos[2], updated_pos[3], successor[2]))
+                
+        return sorted(successors, key=lambda x: x[4])
 
     def _cost(self, current_pos, successor):
         return 1

@@ -50,6 +50,22 @@ class Player:
     def get_facing(self):
         return self.facing
 
+    def change_facing(self, pos, new_pos, facing):
+        pos_dif = (new_pos[0] - pos[0], new_pos[1] - pos[1])
+        directions_values = list(self.DIRECTIONS.values())
+        new_direction_index = directions_values.index(pos_dif)
+
+        directions_keys = list(self.DIRECTIONS.keys())
+        direction_index = directions_keys.index(facing)
+        
+        new_direction = directions_keys[new_direction_index]
+        change = new_direction_index - direction_index
+        if not change or abs(change) == 1 or abs(change) == 2:
+            return (change, new_direction)
+        if abs(change) == 3:
+            return (-1 if change > 0 else 1, new_direction)
+        
+
     def forward_coords(self):
         print(f'facing {self.facing}')
         return self.x + self.DIRECTIONS[self.facing][0],\

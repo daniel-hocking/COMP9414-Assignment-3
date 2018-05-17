@@ -55,8 +55,9 @@ class GameMap:
                 print(self.map[i][j], end='')
             print()
 
-    def can_move_forwards(self):
-        new_coords = self.player.forward_coords()
+    def can_move_forwards(self, new_coords = None):
+        if new_coords is None:
+            new_coords = self.player.forward_coords()
         new_pos = self.map[new_coords[1]][new_coords[0]]
         print(f'new_coords {new_coords} new_pos "{new_pos}"')
         if new_pos in ['T', '-', '~', '*', '.', '']:
@@ -73,7 +74,8 @@ class GameMap:
             possible_poi += list(self.door_loc)
         if len(self.stone_loc):
             possible_poi += list(self.stone_loc)
-        if not self.player.have_raft and len(self.tree_loc):
+        if not self.player.have_raft and self.player.have_axe \
+           and len(self.tree_loc):
             possible_poi += list(self.tree_loc)
         return possible_poi
 
