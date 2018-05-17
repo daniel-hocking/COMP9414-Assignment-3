@@ -34,7 +34,6 @@ class GameMap:
     # Call after every move to keep map up to date
     def update_map(self, data):
         position = self.player.get_position()
-        self._at_item_location(position)
         self._update_dimensions(position)
         pos_x = position[0] - 2
         pos_y = position[1] - 2
@@ -52,7 +51,10 @@ class GameMap:
         #print(self.min_x, self.max_x)
         for i in range(self.min_y, self.max_y + 1):
             for j in range(self.min_x, self.max_x + 1):
-                print(self.map[i][j], end='')
+                if self.map[i][j]:
+                    print(self.map[i][j], end='')
+                else:
+                    print('?', end='')
             print()
 
     def can_move_forwards(self, new_coords = None):
@@ -102,11 +104,46 @@ class GameMap:
         elif item == 'T':
             self.tree_loc.add((pos_x, pos_y))
 
-    def _at_item_location(self, position):
-        # Need to implement other item pickups
-        item = self.map[position[1]][position[0]]
-        if item == '$':
-            self.player.have_treasure = True
+    def update_map_after_move(self, next_step):
+        pos = self.player.get_position()
+        new_pos = self.player.forward_coords()
+        
+        tile = self.map[pos[1]][pos[0]]
+        new_tile = self.map[new_pos[1]][new_pos[0]]
+
+        if next_step == 'f':
+            if new_tile == '$':
+                self.player.have_treasure = True
+                self.map[new_pos[1]][new_pos[0]] = ' '
+            elif new_tile == 'a':
+                self.player.have_axe = True
+                self.axe_loc.discard((new_pos[0], new_pos[1]))
+                self.map[new_pos[1]][new_pos[0]] = ' '
+            elif new_tile == 'k':
+                self.player.have_key = True
+                self.key_loc.discard((new_pos[0], new_pos[1]))
+                self.map[new_pos[1]][new_pos[0]] = ' '
+            elif new_tile == 'o':
+                self.player.num_stones_held += 1
+                self.stone_loc.discard((new_pos[0], new_pos[1]))
+                self.map[new_pos[1]][new_pos[0]] = ' '
+            elif tile != '~' and new_tile == '~':
+                if self.player.num_stones_held:
+                     self.player.num_stones_held -= 1
+                else:
+                    self.player.have_raft = False
+                    self.player.on_raft = True
+            elif tile == '~' and new_tile != '~':
+                self.player.on_raft = False
+                        
+        elif next_step == 'c' and new_tile == 'T':
+            self.player.have_raft = True
+            self.tree_loc.discard((new_pos[0], new_pos[1]))
+            self.map[new_pos[1]][new_pos[0]] = ' '
+        elif next_step == 'u' and new_tile == '-':
+            self.door_loc.discard((new_pos[0], new_pos[1]))
+            self.map[new_pos[1]][new_pos[0]] = ' '
+            
 
     def _update_dimensions(self, position):
         self.max_x = max((self.max_x, position[0] + 2))

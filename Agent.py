@@ -84,7 +84,7 @@ if __name__ == '__main__':
         action = goals.find_next_goal()
         player.player_action(action)
         socket.send(str.encode(action))
-        #sleep(1)
+        sleep(0.2)
         
     socket.close()
 
