@@ -14,7 +14,7 @@ class Player:
     DIRECTIONS = {'N': (0, -1),
                   'E': (1, 0),
                   'S': (0, 1),
-                  'W': (-1, 0),}
+                  'W': (-1, 0)}
     
     def __init__(self):
         # Start location is arbitrary but map has soft limit of 80x80

@@ -82,9 +82,11 @@ if __name__ == '__main__':
         
         #action = get_action()
         action = goals.find_next_goal()
+        if not action:
+            action = goals.allow_cross_divide()
         player.player_action(action)
         socket.send(str.encode(action))
-        sleep(0.2)
+        #sleep(0.5)
         
     socket.close()
 

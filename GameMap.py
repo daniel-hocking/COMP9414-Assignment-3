@@ -17,7 +17,7 @@ class GameMap:
         # Keep a reference to player object so can access the position
         self.player = player
         # Store game word in a defaultdict as unsure of dimensions
-        self.map = defaultdict(lambda: defaultdict(str))\
+        self.map = defaultdict(lambda: defaultdict(str))
         # Keep track of map dimensions
         self.max_x = self.max_y = 0
         self.min_x = self.min_y = 200
@@ -29,10 +29,13 @@ class GameMap:
         self.door_loc = set()
         self.stone_loc = set()
         self.tree_loc = set()
+        # When the map updates other calculations need to be run
+        self.map_updated = False
         
 
     # Call after every move to keep map up to date
     def update_map(self, data):
+        self.map_updated = False
         position = self.player.get_position()
         self._update_dimensions(position)
         pos_x = position[0] - 2
@@ -43,8 +46,7 @@ class GameMap:
             for j in range(5):
                 if not (i == 2 and j == 2):
                     #print(f'i {i} j {j} : pos_y {pos_y + i} pos_x {pos_x + j} : {view[i][j]}')
-                    self.map[pos_y + i][pos_x + j] = view[i][j]
-                    self._update_poi_loc(pos_y + i, pos_x + j, view[i][j]) 
+                    self._update_map_loc((pos_x + j, pos_y + i), view[i][j])
 
     def print_map(self):
         #print(self.min_y, self.max_y)
@@ -56,6 +58,7 @@ class GameMap:
                 else:
                     print('?', end='')
             print()
+        print(f'player {self.player.have_raft}')
 
     def can_move_forwards(self, new_coords = None):
         if new_coords is None:
@@ -88,21 +91,26 @@ class GameMap:
             distance = abs(pos[0] - loc[0]) + abs(pos[1] - loc[1])
             ranked_poi.append((loc[0], loc[1], distance))
         return ranked_poi
-        
-    
-    def _update_poi_loc(self, pos_y, pos_x, item):
+
+    def _update_map_loc(self, loc, new_tile):
+        if self.map[loc[1]][loc[0]] != new_tile:
+            self.map_updated = True
+        self.map[loc[1]][loc[0]] = new_tile
+        self._update_poi_loc(loc, new_tile)
+
+    def _update_poi_loc(self, loc, item):
         if item == '$':
-            self.gold_loc = (pos_x, pos_y)
+            self.gold_loc = loc
         elif item == 'a':
-            self.axe_loc.add((pos_x, pos_y))
+            self.axe_loc.add(loc)
         elif item == 'k':
-            self.key_loc.add((pos_x, pos_y))
+            self.key_loc.add(loc)
         elif item == '-':
-            self.door_loc.add((pos_x, pos_y))
+            self.door_loc.add(loc)
         elif item == 'o':
-            self.stone_loc.add((pos_x, pos_y))
+            self.stone_loc.add(loc)
         elif item == 'T':
-            self.tree_loc.add((pos_x, pos_y))
+            self.tree_loc.add(loc)
 
     def update_map_after_move(self, next_step):
         pos = self.player.get_position()
@@ -127,7 +135,8 @@ class GameMap:
                 self.player.num_stones_held += 1
                 self.stone_loc.discard((new_pos[0], new_pos[1]))
                 self.map[new_pos[1]][new_pos[0]] = ' '
-            elif tile != '~' and new_tile == '~':
+
+            if tile != '~' and new_tile == '~':
                 if self.player.num_stones_held:
                      self.player.num_stones_held -= 1
                 else:
@@ -135,6 +144,7 @@ class GameMap:
                     self.player.on_raft = True
             elif tile == '~' and new_tile != '~':
                 self.player.on_raft = False
+                #self.player.have_raft = False
                         
         elif next_step == 'c' and new_tile == 'T':
             self.player.have_raft = True
