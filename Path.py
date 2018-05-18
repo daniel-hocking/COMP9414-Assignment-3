@@ -8,7 +8,7 @@ Date created: 14/05/2018
 
 from time import time
 from Bfs import Bfs
-from IdaStar import IdaStar
+from AStar import AStar
 
 class Path:
     def __init__(self, game_map):
@@ -66,28 +66,30 @@ class Path:
 
     def find_path_to_goal(self, goals):
         stime = time()
-        ida = IdaStar(self.game_map, goals)
-        path, bound = ida.ida_star(True)
+        a_star = AStar(self.game_map)
+        path = a_star.find_chained_goals(goals)
         overall_time = time() - stime
-        print(f'Time to IDA: {overall_time}')
+        print(f'Time to A*: {overall_time}')
         if path:
-            self.path = path[1::]
+            self.path = path
             print(f'len {len(path)} {path}')
             self.find_steps()
-            print(f'Find steps IDA: {self.steps}')
+            print(f'Find steps A*: {self.steps}')
         return self.has_steps()
 
     def find_path_to_poi(self, cross_divide):
         stime = time()
         bfs = Bfs(self.game_map)
         path = bfs.find_nearest_poi(cross_divide)
+        #a_star = AStar(self.game_map)
+        #path = a_star.find_nearest_poi(cross_divide)
         overall_time = time() - stime
-        print(f'Time to BFS: {overall_time}')
+        print(f'Time to A*: {overall_time}')
         if path:
             self.path = path[1::]
             print(f'BFS path to POI {len(path)}: {path}')
             self.find_steps()
-            print(f'Find steps BFS: {self.steps}')
+            print(f'Find steps A*: {self.steps}')
         return self.has_steps()
 
     def find_path_to_explore(self, cross_divide):

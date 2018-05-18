@@ -84,7 +84,7 @@ class GameMap:
             possible_poi += list(self.tree_loc)
         return possible_poi
 
-    def _find_nearest_poi(self, pois):
+    def find_nearest_poi(self, pois):
         pos = self.player.get_position()
         ranked_poi = []
         for loc in pois:

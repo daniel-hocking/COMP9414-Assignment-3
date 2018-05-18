@@ -17,15 +17,7 @@ class Bfs(Search):
         # goal_coords = None means looking for unexplored area
         # Otherwise expects a list of coords to find path to
         # cross_divide means going from land -> water or water -> land
-        game_state = [self.player.have_axe, self.player.have_key, self.player.have_treasure,
-                      0, False, cross_divide, self.player.on_raft, False]
-        if cross_divide:
-            if prev_state is not None:
-                game_state = list(prev_state)
-            else:
-                game_state[3] = self.player.num_stones_held
-                game_state[4] = self.player.have_raft
-        print(f'game_state {game_state}')
+        game_state = self._setup_game_state(cross_divide, prev_state)
         queue = deque()
         explored = set()
         if pos is None:

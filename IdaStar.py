@@ -17,13 +17,9 @@ class IdaStar(Search):
         super().__init__(game_map)
         self.goals = goals
 
-    def ida_star(self, cross_divide=False):
+    def ida_star(self, cross_divide=False, prev_state=None):
         # cross_divide means going from land -> water or water -> land
-        game_state = [self.player.have_axe, self.player.have_key, self.player.have_treasure,
-                      0, False, cross_divide, self.player.on_raft, False]
-        if cross_divide:
-            game_state[3] = self.player.num_stones_held
-            game_state[4] = self.player.have_raft
+        game_state = self._setup_game_state(cross_divide, prev_state)
         current_pos = self.player.get_position()
         path = [(current_pos[0], current_pos[1])]
         bound = self._manhattan_distance(current_pos, self._current_goal(path))
@@ -61,11 +57,6 @@ class IdaStar(Search):
                 path.pop()
                 game_states.pop()
         return minimum
-
-    def _manhattan_distance(self, current_pos, goal):
-        x_off = current_pos[0] - goal[0]
-        y_off = current_pos[1] - goal[1]
-        return abs(x_off) + abs(y_off)
 
     def _current_goal(self, path):
         for goal in self.goals:

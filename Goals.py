@@ -29,13 +29,13 @@ class Goals:
         gold_loc = self.game_map.gold_loc
         if gold_loc and not self.player.have_treasure:
             goals = [gold_loc, self.player.get_start_position()]
-            if self.path.find_path_to_goals(goals):
+            if self.path.find_path_to_goal(goals):
                 print('gold')
                 self.winning_path = True
                 return self.path.next_step()
         # If have gold then move towards start
         if self.player.have_treasure:
-            if self.path.find_path_to_goals([self.player.get_start_position()]):
+            if self.path.find_path_to_goal([self.player.get_start_position()]):
                 print('start')
                 self.winning_path = True
                 return self.path.next_step()
