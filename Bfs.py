@@ -13,11 +13,11 @@ class Bfs(Search):
     def __init__(self, game_map):
         super().__init__(game_map)
 
-    def _perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False, prev_state=None):
+    def _perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False, prev_state=None, expand_search=0, waste_trees=False):
         # goal_coords = None means looking for unexplored area
         # Otherwise expects a list of coords to find path to
         # cross_divide means going from land -> water or water -> land
-        game_state = self._setup_game_state(cross_divide, prev_state)
+        game_state = self._setup_game_state(cross_divide, prev_state, waste_trees)
         queue = deque()
         explored = set()
         if pos is None:
@@ -41,24 +41,29 @@ class Bfs(Search):
                     break
                 # Check if new position is unexplored, this is the goal
                 if goal_coords is None and \
-                        self.game_map.map[new_pos[1]][new_pos[0]] == '':
+                        self.game_map.any_unexplored_nearby(new_pos, expand_search):
                     found = True
                     break
                 if new_pos not in explored:
-                    game_state = list(game_state)
-                    is_valid = self._valid_move(pos, new_pos, game_state)
+                    new_game_state = list(game_state)
+                    if new_pos[0] == 102 and new_pos[1] == 95:
+                        print(f'test2 new_game_state {new_game_state}')
+                    is_valid = self._valid_move(pos, new_pos, new_game_state)
                     if is_valid:
-                        queue.append((path + [new_pos], game_state))
+                        #print(f'is_valid new_game_state {new_game_state}')
+                        queue.append((path + [new_pos], new_game_state))
                         explored.add(new_pos)
 
             if found:
                 return path, game_state
         return None
 
-    def find_nearest_unexplored(self, cross_divide=False):
-        path = self._perform_bfs_search(None, None, cross_divide)
-        if path:
-            return path[0]
+    def find_nearest_unexplored(self, cross_divide=False, waste_trees=False):
+        for search_radius in range(3):
+            path = self._perform_bfs_search(None, None, cross_divide, None, search_radius, waste_trees)
+            if path:
+                print(f'explore path {path}')
+                return path[0]
         return None
 
     def find_nearest_poi(self, cross_divide=False):

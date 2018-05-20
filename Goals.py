@@ -14,6 +14,7 @@ class Goals:
         self.player = game_map.player
         self.path = Path(self.game_map)
         self.cross_divide = False
+        self.waste_trees = False
         # Winning path means can reach end goal by following the path
         self.winning_path = False
 
@@ -44,15 +45,23 @@ class Goals:
             #print('poi')
             return self.path.next_step()
         # Else explore (move towards an unexplored region)
-        if self.path.find_path_to_explore(self.cross_divide):
+        if self.path.find_path_to_explore(self.cross_divide, self.waste_trees):
             #print('explore')
             self.cross_divide = False
+            self.waste_trees = False
             return self.path.next_step()
 
     def allow_cross_divide(self):
         # If nothing else to explore then see if can reach goal/return
         # Using raft/stones
         self.cross_divide = True
+        return self.find_next_goal()
+
+    def allow_waste_trees(self):
+        # If nothing else to explore then see if can reach goal/return
+        # By wasting trees (have raft but cut down anyway)
+        self.cross_divide = True
+        self.waste_trees = True
         return self.find_next_goal()
         
 

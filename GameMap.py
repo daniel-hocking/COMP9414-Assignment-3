@@ -79,7 +79,7 @@ class GameMap:
             possible_poi += list(self.door_loc)
         if len(self.stone_loc):
             possible_poi += list(self.stone_loc)
-        if not self.player.have_raft and self.player.have_axe \
+        if not self.player.have_raft and not self.player.on_raft and self.player.have_axe \
            and len(self.tree_loc):
             possible_poi += list(self.tree_loc)
         return possible_poi
@@ -91,6 +91,16 @@ class GameMap:
             distance = abs(pos[0] - loc[0]) + abs(pos[1] - loc[1])
             ranked_poi.append((loc[0], loc[1], distance))
         return ranked_poi
+
+    def any_unexplored_nearby(self, pos, radius = 0):
+        if not radius:
+            return self.map[pos[1]][pos[0]] == ''
+        pos_x = pos[0] - radius
+        pos_y = pos[1] - radius
+        for i in range(1 + (radius * 2)):
+            for j in range(1 + (radius * 2)):
+                if self.map[pos_y + i][pos_x + j] == '':
+                    return True
 
     def _update_map_loc(self, loc, new_tile):
         if self.map[loc[1]][loc[0]] != new_tile:
@@ -136,18 +146,19 @@ class GameMap:
                 self.stone_loc.discard((new_pos[0], new_pos[1]))
                 self.map[new_pos[1]][new_pos[0]] = ' '
 
-            if tile != '~' and new_tile == '~':
+            if new_tile == '~':
                 if self.player.num_stones_held:
                      self.player.num_stones_held -= 1
                 else:
                     self.player.have_raft = False
                     self.player.on_raft = True
-            elif tile == '~' and new_tile != '~':
+            elif new_tile != '~':
                 self.player.on_raft = False
                 #self.player.have_raft = False
                         
         elif next_step == 'c' and new_tile == 'T':
-            self.player.have_raft = True
+            if self.player.on_raft == False:
+                self.player.have_raft = True
             self.tree_loc.discard((new_pos[0], new_pos[1]))
             self.map[new_pos[1]][new_pos[0]] = ' '
         elif next_step == 'u' and new_tile == '-':

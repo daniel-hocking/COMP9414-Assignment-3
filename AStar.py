@@ -26,13 +26,14 @@ class AStar(Search):
         closed_set = set()
         open_set = {start_pos}
         came_from = dict()
-        game_states = {start_pos:list(game_state)}
 
         g_score = defaultdict(lambda: self.MAXSTEPS)
         g_score[start_pos] = 0
 
         h_score = defaultdict(lambda: self.MAXSTEPS)
         h_score[start_pos] = self._manhattan_distance(start_pos, goal_coords)
+
+        game_states = {start_pos: list(game_state)}
 
         while len(open_set):
             current = min(open_set, key=lambda x: g_score[x] + h_score[x])
@@ -49,6 +50,7 @@ class AStar(Search):
                 new_game_state = list(game_state)
                 if not self._valid_move(current, new_pos, new_game_state):
                     continue
+                #print(f'a_star game_state {new_game_state}')
                 if new_pos in closed_set:
                     continue
                 if new_pos not in open_set:
@@ -57,7 +59,8 @@ class AStar(Search):
                 tentative_g_score = g_score[current] + 1
                 if tentative_g_score >= g_score[new_pos]:
                     continue
-                game_states[new_pos] = new_game_state
+                if new_pos not in game_states or self._find_best_game_state(game_states[new_pos], new_game_state):
+                    game_states[new_pos] = new_game_state
                 came_from[new_pos] = current
                 g_score[new_pos] = tentative_g_score
                 h_score[new_pos] = g_score[new_pos] + self._manhattan_distance(new_pos, goal_coords)
@@ -70,12 +73,31 @@ class AStar(Search):
             total_path.append(current)
         return list(reversed(total_path))
 
+    def _find_best_game_state(self, old_state, new_state):
+        # game_state: axe = 1, key = 1, treasure = 12, stones = 2 / stone, raft = 5, cross_divide, on_raft, on_stone, waste_trees
+        old_score = 0
+        old_score += 1 if old_state[0] else 0
+        old_score += 1 if old_state[1] else 0
+        old_score += 12 if old_state[2] else 0
+        old_score += 2 * old_state[3] if old_state[3] else 0
+        old_score += 5 if old_state[4] else 0
+        new_score = 0
+        new_score += 1 if new_state[0] else 0
+        new_score += 1 if new_state[1] else 0
+        new_score += 12 if new_state[2] else 0
+        new_score += 2 * new_state[3] if new_state[3] else 0
+        new_score += 5 if new_state[4] else 0
+        return new_score > old_score
+
+
+
     def find_chained_goals(self, goals):
         prev_state = None
         overall_path = []
         start_pos = self.player.get_position()
         for goal in goals:
             path = self.a_star((start_pos[0], start_pos[1]), goal, True, prev_state)
+            print(f'path for goal: {path}')
             if path is None:
                 return None
             start_pos = path[0][-1]

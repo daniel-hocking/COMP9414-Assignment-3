@@ -25,7 +25,7 @@ class Path:
         #print(f'Time to A*: {overall_time}')
         if path:
             self.path = path
-            #print(f'len {len(path)} {path}')
+            #print(f'A* path to goals {len(path)} {path}')
             self.find_steps()
             #print(f'Find steps A*: {self.steps}')
         return self.has_steps()
@@ -40,15 +40,15 @@ class Path:
         #print(f'Time to A*: {overall_time}')
         if path:
             self.path = path
-            #print(f'BFS path to POI {len(path)}: {path}')
+            #print(f'A* path to POI {len(path)}: {path}')
             self.find_steps()
             #print(f'Find steps A*: {self.steps}')
         return self.has_steps()
 
-    def find_path_to_explore(self, cross_divide):
+    def find_path_to_explore(self, cross_divide, waste_trees):
         stime = time()
         bfs = Bfs(self.game_map)
-        path = bfs.find_nearest_unexplored(cross_divide)
+        path = bfs.find_nearest_unexplored(cross_divide, waste_trees)
         overall_time = time() - stime
         #print(f'Time to BFS: {overall_time}')
         if path:

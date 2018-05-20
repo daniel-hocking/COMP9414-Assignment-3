@@ -23,10 +23,12 @@ class Search:
         self.player = self.game_map.player
 
     def _valid_move(self, current_pos, new_pos, game_state):
-        # game_state: axe, key, treasure, stones, raft, cross_divide, on_raft, on_stone
+        # game_state: axe, key, treasure, stones, raft, cross_divide, on_raft, on_stone, waste_trees
         current_tile = self.game_map.map[current_pos[1]][current_pos[0]]
         new_tile = self.game_map.map[new_pos[1]][new_pos[0]]
-
+        on_raft = game_state[6]
+        if new_tile == 'T':
+            print(f'_valid_move game_state {game_state} current_tile {current_tile}')
         if current_tile == '~' and new_tile == '~' and game_state[6]:
             return True
         if current_tile == '~' and new_tile != '~' and not game_state[5] and not game_state[7]:
@@ -56,9 +58,13 @@ class Search:
         if new_tile == 'o':
             game_state[3] += 1
             return True
+        if new_tile == 'T' and game_state[0] and not game_state[4] and not on_raft:
+            game_state[4] = True
+            return True
+        if new_tile == 'T' and game_state[0] and game_state[8]:
+            return True
 
         if (new_tile == '-' and game_state[1]) or \
-           (new_tile == 'T' and game_state[0]) or \
            new_tile in ['O', ' ']:
             return True
         return False
@@ -77,13 +83,10 @@ class Search:
         y_off = current_pos[1] - goal[1]
         return abs(x_off) + abs(y_off)
 
-    def _setup_game_state(self, cross_divide, prev_state):
+    def _setup_game_state(self, cross_divide, prev_state, waste_trees=False):
         game_state = [self.player.have_axe, self.player.have_key, self.player.have_treasure,
-                      0, False, cross_divide, self.player.on_raft, False]
-        if cross_divide:
-            if prev_state is not None:
-                game_state = list(prev_state)
-            else:
-                game_state[3] = self.player.num_stones_held
-                game_state[4] = self.player.have_raft
+                      self.player.num_stones_held, self.player.have_raft, cross_divide, self.player.on_raft, False, waste_trees]
+        if prev_state is not None:
+            game_state = list(prev_state)
+        #print(f'game_state {game_state}')
         return game_state
