@@ -27,7 +27,7 @@ class Bfs(Search):
         found = False
         while len(queue):
             path, game_state = queue.popleft()
-            print(f'abc path {path}  game_state {game_state}')
+            #print(f'abc path {path}  game_state {game_state}')
             directions = self._new_directions(path)
             pos = path[-1]
             # Now check each of the four possible directions
@@ -58,14 +58,12 @@ class Bfs(Search):
     def find_nearest_unexplored(self, cross_divide=False):
         path = self._perform_bfs_search(None, None, cross_divide)
         if path:
-            print(f'cross_divide {cross_divide} game_state {path}')
             return path[0]
         return None
 
     def find_nearest_poi(self, cross_divide=False):
         poi_list = self.game_map.find_poi_list()
         if len(poi_list):
-            print(f'poi_list {poi_list}')
             path = self._perform_bfs_search(None, poi_list, cross_divide)
             if path:
                 return path[0]
@@ -80,7 +78,6 @@ class Bfs(Search):
             if path is None:
                 return None
             start_pos = path[0][-1]
-            print(f'patial path: {path}')
             overall_path = overall_path + path[0][1::]
             prev_state = path[1]
         return overall_path

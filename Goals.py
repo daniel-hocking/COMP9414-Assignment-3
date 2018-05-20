@@ -30,22 +30,22 @@ class Goals:
         if gold_loc and not self.player.have_treasure:
             goals = [gold_loc, self.player.get_start_position()]
             if self.path.find_path_to_goal(goals):
-                print('gold')
+                #print('gold')
                 self.winning_path = True
                 return self.path.next_step()
         # If have gold then move towards start
         if self.player.have_treasure:
             if self.path.find_path_to_goal([self.player.get_start_position()]):
-                print('start')
+                #print('start')
                 self.winning_path = True
                 return self.path.next_step()
         # If there are POI's to go to then find path to nearest
         if self.path.find_path_to_poi(self.cross_divide):
-            print('poi')
+            #print('poi')
             return self.path.next_step()
         # Else explore (move towards an unexplored region)
         if self.path.find_path_to_explore(self.cross_divide):
-            print('explore')
+            #print('explore')
             self.cross_divide = False
             return self.path.next_step()
 

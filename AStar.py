@@ -26,6 +26,7 @@ class AStar(Search):
         closed_set = set()
         open_set = {start_pos}
         came_from = dict()
+        game_states = {start_pos:list(game_state)}
 
         g_score = defaultdict(lambda: self.MAXSTEPS)
         g_score[start_pos] = 0
@@ -35,8 +36,9 @@ class AStar(Search):
 
         while len(open_set):
             current = min(open_set, key=lambda x: g_score[x] + h_score[x])
+            game_state = game_states[current]
             if current == goal_coords:
-                return self.reconstruct_path(came_from, current), prev_state
+                return self.reconstruct_path(came_from, current), game_state
 
             open_set.remove(current)
             closed_set.add(current)
@@ -44,7 +46,8 @@ class AStar(Search):
             directions = self._new_directions([current])
             for direction in directions:
                 new_pos = (current[0] + direction[0], current[1] + direction[1])
-                if not self._valid_move(current, new_pos, game_state):
+                new_game_state = list(game_state)
+                if not self._valid_move(current, new_pos, new_game_state):
                     continue
                 if new_pos in closed_set:
                     continue
@@ -54,6 +57,7 @@ class AStar(Search):
                 tentative_g_score = g_score[current] + 1
                 if tentative_g_score >= g_score[new_pos]:
                     continue
+                game_states[new_pos] = new_game_state
                 came_from[new_pos] = current
                 g_score[new_pos] = tentative_g_score
                 h_score[new_pos] = g_score[new_pos] + self._manhattan_distance(new_pos, goal_coords)
@@ -75,7 +79,6 @@ class AStar(Search):
             if path is None:
                 return None
             start_pos = path[0][-1]
-            print(f'partial path: {path}')
             overall_path = overall_path + path[0][1::]
             prev_state = path[1]
         return overall_path
@@ -84,8 +87,7 @@ class AStar(Search):
         poi_list = self.game_map.find_nearest_poi(self.game_map.find_poi_list())
         start_pos = self.player.get_position()
         for poi in poi_list:
-            print(f'Try to path to {poi}')
-            path = self.a_star((start_pos[0], start_pos[1]), poi, cross_divide)
+            path = self.a_star((start_pos[0], start_pos[1]), (poi[0], poi[1]), cross_divide)
             if path:
-                return path[0]
+                return path[0][1::]
         return None

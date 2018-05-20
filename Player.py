@@ -39,7 +39,7 @@ class Player:
             self.turn_right()
         elif action == 'l':
             self.turn_left()
-        print(self.get_position())
+        #print(self.get_position())
 
     def get_position(self):
         return (self.x, self.y, self.facing)
@@ -67,7 +67,7 @@ class Player:
         
 
     def forward_coords(self):
-        print(f'facing {self.facing}')
+        #print(f'facing {self.facing}')
         return self.x + self.DIRECTIONS[self.facing][0],\
                self.y + self.DIRECTIONS[self.facing][1]
     

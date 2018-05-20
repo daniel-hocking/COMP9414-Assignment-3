@@ -58,13 +58,13 @@ class GameMap:
                 else:
                     print('?', end='')
             print()
-        print(f'player {self.player.have_raft}')
+        #print(f'player {self.player.have_raft}')
 
     def can_move_forwards(self, new_coords = None):
         if new_coords is None:
             new_coords = self.player.forward_coords()
         new_pos = self.map[new_coords[1]][new_coords[0]]
-        print(f'new_coords {new_coords} new_pos "{new_pos}"')
+        #print(f'new_coords {new_coords} new_pos "{new_pos}"')
         if new_pos in ['T', '-', '~', '*', '.', '']:
             return False
         return True
