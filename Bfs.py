@@ -46,8 +46,6 @@ class Bfs(Search):
                     break
                 if new_pos not in explored:
                     new_game_state = list(game_state)
-                    if new_pos[0] == 102 and new_pos[1] == 95:
-                        print(f'test2 new_game_state {new_game_state}')
                     is_valid = self._valid_move(pos, new_pos, new_game_state)
                     if is_valid:
                         #print(f'is_valid new_game_state {new_game_state}')
@@ -62,7 +60,6 @@ class Bfs(Search):
         for search_radius in range(3):
             path = self._perform_bfs_search(None, None, cross_divide, None, search_radius, waste_trees)
             if path:
-                print(f'explore path {path}')
                 return path[0]
         return None
 

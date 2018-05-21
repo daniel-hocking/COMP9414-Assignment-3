@@ -10,11 +10,14 @@ Date created: 13/05/2018
 
 import sys
 import socket
-from time import time, sleep
 from Player import Player
 from GameMap import GameMap
 from Goals import Goals
 
+'''
+Takes the 24 bytes received by the server and prints them in human-readable 
+format, only used in testing
+'''
 def print_view(data):
     data = data.decode()
     str_cnt = 0
@@ -31,6 +34,9 @@ def print_view(data):
         print('|')
     print('+-----+')
 
+'''
+Allows for keyboard input of an action to take, only used in testing
+'''
 def get_action():
     while True:
         action = input('Enter Action(s): ')
@@ -39,6 +45,9 @@ def get_action():
             if char in ['f','l','r','c','u','b']:
                 return char
 
+'''
+Reads next 24 bytes sent by the server into a variable and then returns
+'''
 def receive_socket_data(socket):
     to_read = 24
     data = bytearray(to_read)
@@ -52,6 +61,16 @@ def receive_socket_data(socket):
         to_read -= bytes_read
     return data
 
+'''
+The main function is where program execution begins:
+- Get the command line input or exit if not found
+- Open socket connection to server or exit if fails
+- Initialise the Player, GameMap and Goals objects used to track game 
+state and find goals
+- Receive data and issue actions until the game is solved or lost
+- After receive data update map, and find what the next move should be
+using goal/pathfinding logic
+'''
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print(f'python {sys.argv[0]} -p <port>')
@@ -60,7 +79,7 @@ if __name__ == '__main__':
         port = int(sys.argv[2])
     except:
         print('Invalid port')
-        sys.exit
+        sys.exit()
     if not 1025 <= port <= 65535:
         print('Invalid port')
         sys.exit()
@@ -72,22 +91,22 @@ if __name__ == '__main__':
          print('Connection refused, check host is running')
          sys.exit()
 
-    stime = time()
-    total_processing = 0
+    #stime = time()
+    #total_processing = 0
     player = Player()
     game_map = GameMap(player)
     goals = Goals(game_map)
     while True:
         data = receive_socket_data(socket)
         if not data:
-            overall_time = time() - stime
-            print(f'Overall time taken: {overall_time} processing time: {total_processing}')
+            #overall_time = time() - stime
+            #print(f'Overall time taken: {overall_time} processing time: {total_processing}')
             socket.close()
             sys.exit()
-        mtime = time()
+        #mtime = time()
         #print_view(data)
         game_map.update_map(data)
-        game_map.print_map()
+        #game_map.print_map()
         
         #action = get_action()
         action = goals.find_next_goal()
@@ -96,9 +115,8 @@ if __name__ == '__main__':
         if not action:
             action = goals.allow_waste_trees()
         player.player_action(action)
-        move_time = time() - mtime
-        total_processing += move_time
-        print(f'Time to process move: {move_time}')
+        #move_time = time() - mtime
+        #total_processing += move_time
+        #print(f'Time to process move: {move_time}')
         socket.send(str.encode(action))
-        #sleep(0.5)
 

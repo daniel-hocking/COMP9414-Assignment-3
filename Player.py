@@ -1,6 +1,7 @@
 '''
 Player.py
 Contains the Player class which is used to store the current status of player
+and also some additional helper functions
 Written by: Daniel Hocking
 zID: 5184128
 Date created: 13/05/2018
@@ -29,9 +30,13 @@ class Player:
         self.have_treasure = False
         self.have_raft = False
         self.on_raft = False
-        self.num_dynamites_held = 0
+        # Not to be used this year
+        #self.num_dynamites_held = 0
         self.num_stones_held = 0
 
+    '''
+    This function update the position and facing of the player based on actions taken
+    '''
     def player_action(self, action):
         if action == 'f':
             self.move_forwards()
@@ -39,7 +44,6 @@ class Player:
             self.turn_right()
         elif action == 'l':
             self.turn_left()
-        #print(self.get_position())
 
     def get_position(self):
         return (self.x, self.y, self.facing)
@@ -50,6 +54,10 @@ class Player:
     def get_facing(self):
         return self.facing
 
+    '''
+    Allows for two positions and the current facing to be used to find what
+    the number if L or R turns will be needed, along with the new facing
+    '''
     def change_facing(self, pos, new_pos, facing):
         pos_dif = (new_pos[0] - pos[0], new_pos[1] - pos[1])
         directions_values = list(self.DIRECTIONS.values())
@@ -66,24 +74,38 @@ class Player:
             return (-1 if change > 0 else 1, new_direction)
         
 
+    '''
+    The coords of what is directly in front of the player
+    '''
     def forward_coords(self):
-        #print(f'facing {self.facing}')
         return self.x + self.DIRECTIONS[self.facing][0],\
                self.y + self.DIRECTIONS[self.facing][1]
-    
+
+    '''
+    Move one step in direction of currently facing
+    '''
     def move_forwards(self):
         new_coords = self.forward_coords()
         self.x = new_coords[0]
         self.y = new_coords[1]
 
+    '''
+    Change direction by a certain amount from current facing
+    '''
     def _turn_dir(self, change_by = 1):
         directions_keys = list(self.DIRECTIONS.keys())
         direction_index = directions_keys.index(self.facing)
         self.facing = directions_keys[(direction_index + change_by) % 4]
 
+    '''
+    Helper function to turn right once
+    '''
     def turn_right(self):
         self._turn_dir()
 
+    '''
+    Helper function to turn left once
+    '''
     def turn_left(self):
         self._turn_dir(-1)
         

@@ -99,7 +99,6 @@ class AStar(Search):
         start_pos = self.player.get_position()
         for goal in goals:
             path = self.a_star((start_pos[0], start_pos[1]), goal, True, prev_state)
-            print(f'path for goal: {path}')
             if path is None:
                 return None
             start_pos = path[0][-1]

@@ -1,6 +1,7 @@
 '''
 GameMap.py
 Contains the GameMap class which is used to store the map of the game world
+and also some additional helper functions
 Written by: Daniel Hocking
 zID: 5184128
 Date created: 13/05/2018
@@ -10,6 +11,7 @@ from collections import defaultdict
 import numpy as np
 
 class GameMap:
+    # Depending on current facing the input data may need to be rotated to match up
     ROTATIONS = {'N': 0, 'E': 3,
                  'S': 2, 'W': 1,}
     
@@ -41,16 +43,12 @@ class GameMap:
         pos_x = position[0] - 2
         pos_y = position[1] - 2
         view = self._rotate_view(data)
-        #print(view)
         for i in range(5):
             for j in range(5):
                 if not (i == 2 and j == 2):
-                    #print(f'i {i} j {j} : pos_y {pos_y + i} pos_x {pos_x + j} : {view[i][j]}')
                     self._update_map_loc((pos_x + j, pos_y + i), view[i][j])
 
     def print_map(self):
-        #print(self.min_y, self.max_y)
-        #print(self.min_x, self.max_x)
         for i in range(self.min_y, self.max_y + 1):
             for j in range(self.min_x, self.max_x + 1):
                 if self.map[i][j]:
@@ -58,13 +56,11 @@ class GameMap:
                 else:
                     print('?', end='')
             print()
-        #print(f'player {self.player.have_raft}')
 
     def can_move_forwards(self, new_coords = None):
         if new_coords is None:
             new_coords = self.player.forward_coords()
         new_pos = self.map[new_coords[1]][new_coords[0]]
-        #print(f'new_coords {new_coords} new_pos "{new_pos}"')
         if new_pos in ['T', '-', '~', '*', '.', '']:
             return False
         return True
@@ -143,14 +139,12 @@ class GameMap:
                 self.map[new_pos[1]][new_pos[0]] = ' '
             elif new_tile == 'o':
                 self.player.num_stones_held += 1
-                print(f'addstone to player {self.player.num_stones_held}')
                 self.stone_loc.discard((new_pos[0], new_pos[1]))
                 self.map[new_pos[1]][new_pos[0]] = ' '
 
             if new_tile == '~':
                 if self.player.num_stones_held:
                      self.player.num_stones_held -= 1
-                     print(f'removestone to player {self.player.num_stones_held}')
                 else:
                     self.player.have_raft = False
                     self.player.on_raft = True
