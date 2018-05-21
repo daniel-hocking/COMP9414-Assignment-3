@@ -18,59 +18,61 @@ class AStar(Search):
         super().__init__(game_map)
 
     def a_star(self, start_pos=None, goal_coords=None, cross_divide=False, prev_state=None):
-        game_state = self._setup_game_state(cross_divide, prev_state)
+        game_state = self._setup_game_state(cross_divide, prev_state, True)
         if start_pos is None:
             player_pos = self.player.get_position()
             start_pos = (player_pos[0], player_pos[1])
 
+        start_state = start_pos + tuple(game_state)
         closed_set = set()
-        open_set = {start_pos}
+        open_set = {start_state}
         came_from = dict()
 
         g_score = defaultdict(lambda: self.MAXSTEPS)
-        g_score[start_pos] = 0
+        g_score[start_state] = 0
 
         h_score = defaultdict(lambda: self.MAXSTEPS)
-        h_score[start_pos] = self._manhattan_distance(start_pos, goal_coords)
-
-        game_states = {start_pos: list(game_state)}
+        h_score[start_state] = self._manhattan_distance(start_pos, goal_coords)
 
         while len(open_set):
             current = min(open_set, key=lambda x: g_score[x] + h_score[x])
-            game_state = game_states[current]
-            if current == goal_coords:
+            #game_state = game_states[current]
+            current_pos = current[:2:]
+            game_state = list(current)[2::]
+            if current_pos == goal_coords:
                 return self.reconstruct_path(came_from, current), game_state
 
             open_set.remove(current)
             closed_set.add(current)
 
-            directions = self._new_directions([current])
+            directions = self._new_directions([current_pos])
             for direction in directions:
-                new_pos = (current[0] + direction[0], current[1] + direction[1])
+                new_pos = (current_pos[0] + direction[0], current_pos[1] + direction[1])
                 new_game_state = list(game_state)
-                if not self._valid_move(current, new_pos, new_game_state):
+                if not self._valid_move(current_pos, new_pos, new_game_state):
                     continue
                 #print(f'a_star game_state {new_game_state}')
-                if new_pos in closed_set:
+                new_state = new_pos + tuple(new_game_state)
+                if new_state in closed_set:
                     continue
-                if new_pos not in open_set:
-                    open_set.add(new_pos)
+                if new_state not in open_set:
+                    open_set.add(new_state)
 
                 tentative_g_score = g_score[current] + 1
-                if tentative_g_score >= g_score[new_pos]:
+                if tentative_g_score >= g_score[new_state]:
                     continue
-                if new_pos not in game_states or self._find_best_game_state(game_states[new_pos], new_game_state):
-                    game_states[new_pos] = new_game_state
-                came_from[new_pos] = current
-                g_score[new_pos] = tentative_g_score
-                h_score[new_pos] = g_score[new_pos] + self._manhattan_distance(new_pos, goal_coords)
+                #if new_pos not in game_states or self._find_best_game_state(game_states[new_pos], new_game_state):
+                #    game_states[new_pos] = new_game_state
+                came_from[new_state] = current
+                g_score[new_state] = tentative_g_score
+                h_score[new_state] = g_score[new_state] + self._manhattan_distance(new_pos, goal_coords)
         return None
 
     def reconstruct_path(self, came_from, current):
-        total_path = [current]
+        total_path = [(current[0], current[1])]
         while current in came_from:
             current = came_from[current]
-            total_path.append(current)
+            total_path.append((current[0], current[1]))
         return list(reversed(total_path))
 
     def _find_best_game_state(self, old_state, new_state):

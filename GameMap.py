@@ -143,12 +143,14 @@ class GameMap:
                 self.map[new_pos[1]][new_pos[0]] = ' '
             elif new_tile == 'o':
                 self.player.num_stones_held += 1
+                print(f'addstone to player {self.player.num_stones_held}')
                 self.stone_loc.discard((new_pos[0], new_pos[1]))
                 self.map[new_pos[1]][new_pos[0]] = ' '
 
             if new_tile == '~':
                 if self.player.num_stones_held:
                      self.player.num_stones_held -= 1
+                     print(f'removestone to player {self.player.num_stones_held}')
                 else:
                     self.player.have_raft = False
                     self.player.on_raft = True
