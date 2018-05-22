@@ -108,6 +108,45 @@ class Player:
     '''
     def turn_left(self):
         self._turn_dir(-1)
-        
-        
-        
+
+    '''
+    Called when a tree is chopped down to update player status
+    Can chop down a tree on a raft but it won't give an extra raft
+    '''
+    def chop_down_tree(self):
+        if self.on_raft == False:
+            self.have_raft = True
+
+    '''
+    If the new tile is water then reduce stones if have any, or use raft
+    '''
+    def move_to_water(self):
+        if self.num_stones_held:
+            self.num_stones_held -= 1
+        else:
+            self.have_raft = False
+            self.on_raft = True
+
+    '''
+    Called when new tile isn't water
+    '''
+    def move_out_of_water(self):
+        self.on_raft = False
+
+    '''
+    Called when player moves forward, updates status as needed
+    '''
+    def move_to_loc(self, tile):
+        if tile == '$':
+            self.have_treasure = True
+        elif tile == 'a':
+            self.have_axe = True
+        elif tile == 'k':
+            self.have_key = True
+        elif tile == 'o':
+            self.num_stones_held += 1
+
+        if tile == '~':
+            self.move_to_water()
+        elif tile != '~':
+            self.move_out_of_water()

@@ -119,4 +119,3 @@ if __name__ == '__main__':
         #total_processing += move_time
         #print(f'Time to process move: {move_time}')
         socket.send(str.encode(action))
-
