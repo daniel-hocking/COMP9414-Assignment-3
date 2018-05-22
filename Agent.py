@@ -71,51 +71,51 @@ state and find goals
 - After receive data update map, and find what the next move should be
 using goal/pathfinding logic
 '''
-if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print(f'python {sys.argv[0]} -p <port>')
-        sys.exit()
-    try:
-        port = int(sys.argv[2])
-    except:
-        print('Invalid port')
-        sys.exit()
-    if not 1025 <= port <= 65535:
-        print('Invalid port')
-        sys.exit()
+#if __name__ == '__main__':
+if len(sys.argv) != 3:
+    print(f'python {sys.argv[0]} -p <port>')
+    sys.exit()
+try:
+    port = int(sys.argv[2])
+except:
+    print('Invalid port')
+    sys.exit()
+if not 1025 <= port <= 65535:
+    print('Invalid port')
+    sys.exit()
 
-    socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        socket.connect(('localhost', port))
-    except ConnectionRefusedError:
-         print('Connection refused, check host is running')
-         sys.exit()
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    socket.connect(('localhost', port))
+except ConnectionRefusedError:
+     print('Connection refused, check host is running')
+     sys.exit()
 
-    #stime = time()
-    #total_processing = 0
-    player = Player()
-    game_map = GameMap(player)
-    goals = Goals(game_map)
-    while True:
-        data = receive_socket_data(socket)
-        if not data:
-            #overall_time = time() - stime
-            #print(f'Overall time taken: {overall_time} processing time: {total_processing}')
-            socket.close()
-            sys.exit()
-        #mtime = time()
-        #print_view(data)
-        game_map.update_map(data)
-        #game_map.print_map()
-        
-        #action = get_action()
-        action = goals.find_next_goal()
-        if not action:
-            action = goals.allow_cross_divide()
-        if not action:
-            action = goals.allow_waste_trees()
-        player.player_action(action)
-        #move_time = time() - mtime
-        #total_processing += move_time
-        #print(f'Time to process move: {move_time}')
-        socket.send(str.encode(action))
+#stime = time()
+#total_processing = 0
+player = Player()
+game_map = GameMap(player)
+goals = Goals(game_map)
+while True:
+    data = receive_socket_data(socket)
+    if not data:
+        #overall_time = time() - stime
+        #print(f'Overall time taken: {overall_time} processing time: {total_processing}')
+        socket.close()
+        sys.exit()
+    #mtime = time()
+    #print_view(data)
+    game_map.update_map(data)
+    #game_map.print_map()
+    
+    #action = get_action()
+    action = goals.find_next_goal()
+    if not action:
+        action = goals.allow_cross_divide()
+    if not action:
+        action = goals.allow_waste_trees()
+    player.player_action(action)
+    #move_time = time() - mtime
+    #total_processing += move_time
+    #print(f'Time to process move: {move_time}')
+    socket.send(str.encode(action))
