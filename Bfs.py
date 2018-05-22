@@ -1,6 +1,9 @@
 '''
 Bfs.py
 Contains the Bfs class which extends the Search class and implements BFS
+It should be noted that this is a modified BFS that sacrifices optimality
+in exchange for being significantly faster, which makes it good for
+general exploration
 Written by: Daniel Hocking
 zID: 5184128
 Date created: 18/05/2018
@@ -10,24 +13,40 @@ from collections import deque
 from Search import Search
 
 class Bfs(Search):
+
     def __init__(self, game_map):
         super().__init__(game_map)
 
-    def _perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False, prev_state=None, expand_search=0, waste_trees=False):
-        # goal_coords = None means looking for unexplored area
-        # Otherwise expects a list of coords to find path to
-        # cross_divide means going from land -> water or water -> land
+    '''
+    This function carries out the modified BFS, it has a number of optional parameters
+    A lot of the options were previously used for finding POI's but this was later
+    changed to use A* search instead
+    pos: is the start position if none supplied will use current position
+    goal_coords: is a list of goal coords if none supplied will look for unexplored areas
+    cross_divide: is search allowed to cross between land -> water or the reverse
+    prev_state: when simulating chained goals this is the initial state, if none
+        then use current player state
+    expand_search: if > 0 then only need to get within n tiles of the goal state
+    waste_trees: can trees be cut down when a raft is already held
+    '''
+    def perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False, prev_state=None, expand_search=0, waste_trees=False):
         game_state = self._setup_game_state(cross_divide, prev_state, waste_trees)
+        # Minor efficiency improvement by using a deque which has fast access
+        # to both ends
         queue = deque()
         explored = set()
         if pos is None:
             pos = self.player.get_position()
+        # Must store game_state along with the path otherwise item use/pickups
+        # won't be factored in to checks
         queue.append(([(pos[0], pos[1])], game_state))
+        # Keep track of where has already been explored so as not to re-explore
+        # This greatly reduces number of tiles visited (only ever visit each once)
+        # But it also means the path may not be the most direct
         explored.add((pos[0], pos[1]))
         found = False
         while len(queue):
             path, game_state = queue.popleft()
-            #print(f'abc path {path}  game_state {game_state}')
             directions = self._new_directions(path)
             pos = path[-1]
             # Now check each of the four possible directions
@@ -46,40 +65,10 @@ class Bfs(Search):
                     break
                 if new_pos not in explored:
                     new_game_state = list(game_state)
-                    is_valid = self._valid_move(pos, new_pos, new_game_state)
-                    if is_valid:
-                        #print(f'is_valid new_game_state {new_game_state}')
+                    if self._valid_move(pos, new_pos, new_game_state):
                         queue.append((path + [new_pos], new_game_state))
                         explored.add(new_pos)
 
             if found:
-                return path, game_state
+                return path
         return None
-
-    def find_nearest_unexplored(self, cross_divide=False, waste_trees=False):
-        for search_radius in range(3):
-            path = self._perform_bfs_search(None, None, cross_divide, None, search_radius, waste_trees)
-            if path:
-                return path[0]
-        return None
-
-    def find_nearest_poi(self, cross_divide=False):
-        poi_list = self.game_map.find_poi_list()
-        if len(poi_list):
-            path = self._perform_bfs_search(None, poi_list, cross_divide)
-            if path:
-                return path[0]
-        return None
-
-    def find_chained_goals(self, goals):
-        prev_state = None
-        overall_path = []
-        start_pos = self.player.get_position()
-        for goal in goals:
-            path = self._perform_bfs_search(start_pos, [goal], True, prev_state)
-            if path is None:
-                return None
-            start_pos = path[0][-1]
-            overall_path = overall_path + path[0][1::]
-            prev_state = path[1]
-        return overall_path

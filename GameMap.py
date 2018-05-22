@@ -11,6 +11,7 @@ from collections import defaultdict
 import numpy as np
 
 class GameMap:
+
     # Depending on current facing the input data may need to be rotated to match up
     ROTATIONS = {'N': 0, 'E': 3,
                  'S': 2, 'W': 1}
