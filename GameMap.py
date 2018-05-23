@@ -9,6 +9,7 @@ Date created: 13/05/2018
 
 from collections import defaultdict
 import numpy as np
+from Bfs import Bfs
 
 class GameMap:
 
@@ -199,3 +200,24 @@ class GameMap:
             view.append(view_row)
         rotate_by = self.ROTATIONS[self.player.get_facing()]
         return np.rot90(np.array(view), k = rotate_by)
+
+    '''
+    Start by finding locations that are acessible, and then find traversable
+    land that isn't part of that region
+    '''
+    def find_unexplored_regions(self):
+        bfs = Bfs(self)
+        accessible_region = bfs.perform_bfs_search(get_explored=True)
+        inaccessible_region = set()
+        for i in range(self.min_y, self.max_y + 1):
+            for j in range(self.min_x, self.max_x + 1):
+                tile = self.map[i][j]
+                pos = (j, i)
+                if pos not in accessible_region and pos not in inaccessible_region and \
+                        (tile in [' ', 'O', 'o', '$', 'a', 'k'] or
+                        (tile == 'T' and self.player.have_axe) or
+                        (tile == '-' and self.player.have_key)):
+                    region = bfs.perform_bfs_search(pos=pos, get_explored=True)
+                    inaccessible_region = inaccessible_region.union(region)
+        return accessible_region, inaccessible_region
+

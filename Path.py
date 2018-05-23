@@ -33,11 +33,26 @@ class Path:
     to the start
     '''
     def find_path_to_goal(self, goals):
+        # Start by looking for any possible path, if one is found then see if
+        # there is something less destructive, this stops the path from cutting
+        # down trees or crossing water when it merely saves a few steps
+        path = self._find_path_to_goal(goals)
+        if path is not None:
+            path_no_tree = self._find_path_to_goal(goals, waste_trees=False)
+            if path_no_tree is not None:
+                path = path_no_tree
+                path_no_water = self._find_path_to_goal(goals, False, False)
+                if path_no_water is not None:
+                    path = path_no_water
+
+        return self._update_path(path)
+
+    def _find_path_to_goal(self, goals, cross_divide = True, waste_trees = True):
         prev_state = None
         path = []
         start_pos = self.player.get_position()
         for goal in goals:
-            a_star_search = self.a_star.perform_a_star_search(goal, (start_pos[0], start_pos[1]), True, prev_state)
+            a_star_search = self.a_star.perform_a_star_search(goal, (start_pos[0], start_pos[1]), cross_divide, prev_state, waste_trees)
             if a_star_search is None:
                 path = None
                 break
@@ -45,13 +60,13 @@ class Path:
             path = path + a_star_search[0][1::]
             prev_state = a_star_search[1]
 
-        return self._update_path(path)
+        return path
 
     '''
     Gets a list of all relevant and known POI and ranks by distance from current
     location, then performs A* search until it finds a path to one of the POI
     '''
-    def find_path_to_poi(self, cross_divide):
+    def find_path_to_poi(self, cross_divide=False):
         path = None
         poi_list = self.game_map.find_nearest_poi(self.game_map.find_poi_list())
         for poi in poi_list:
@@ -67,7 +82,7 @@ class Path:
     unexplored area, if can't directly reach will start to look for areas
     that are close to unxplored regions
     '''
-    def find_path_to_explore(self, cross_divide, waste_trees):
+    def find_path_to_explore(self, cross_divide=False, waste_trees=False):
         path = None
         for search_radius in range(3):
             bfs_search = self.bfs.perform_bfs_search(cross_divide=cross_divide, expand_search=search_radius, waste_trees=waste_trees)
@@ -75,6 +90,18 @@ class Path:
                 path = bfs_search[1::]
                 break
 
+        return self._update_path(path)
+
+    '''
+    First build up a set containing the inaccessible_regions that might be of interest
+    to explore and then perform a BFS allowing the use of stones to reach them
+    '''
+    def find_path_to_new_land(self):
+        accessible_region, inaccessible_region = self.game_map.find_unexplored_regions()
+        path = None
+        bfs_search = self.bfs.perform_bfs_search(goal_coords=inaccessible_region, use_stones=True)
+        if bfs_search:
+            path = bfs_search[1::]
         return self._update_path(path)
 
     '''

@@ -17,10 +17,6 @@ class Goals:
         self.player = game_map.player
         # Create new path object and keep reference to it
         self.path = Path(self.game_map)
-        # Flag that allows for pathfinding to cross from land -> water or reverse
-        self.cross_divide = False
-        # Flag that allows for trees to be cut down when a raft is already held
-        self.waste_trees = False
         # Winning path means can reach end goal by following the path
         self.winning_path = False
 
@@ -48,27 +44,22 @@ class Goals:
                 self.winning_path = True
                 return self.path.next_step()
         # If there are POI's to go to that would be useful then find path to nearest
-        if self.path.find_path_to_poi(self.cross_divide):
+        if self.path.find_path_to_poi():
             return self.path.next_step()
         # Else explore (move towards an unexplored region)
-        if self.path.find_path_to_explore(self.cross_divide, self.waste_trees):
-            self.cross_divide = False
-            self.waste_trees = False
+        if self.path.find_path_to_explore():
             return self.path.next_step()
 
-    '''
-    If nothing else to explore then see if can reach goal/return
-    using raft/stones
-    '''
-    def allow_cross_divide(self):
-        self.cross_divide = True
-        return self.find_next_goal()
-
-    '''
-    If nothing else to explore then see if can reach goal/return
-    by wasting trees and using raft/stones (have raft but cut down anyway)
-    '''
-    def allow_waste_trees(self):
-        self.cross_divide = True
-        self.waste_trees = True
-        return self.find_next_goal()
+    def extended_searches(self):
+        # Allow POI search to cross land -> water divide
+        if self.path.find_path_to_poi(cross_divide=True):
+            return self.path.next_step()
+        # See if using stones will lead to a useful exploration path
+        if self.player.num_stones_held and self.path.find_path_to_new_land():
+            return self.path.next_step()
+        # Allow crossing land -> water divide
+        if self.path.find_path_to_explore(cross_divide=True):
+            return self.path.next_step()
+        # Also allow wasting trees
+        if self.path.find_path_to_explore(cross_divide=True, waste_trees=True):
+            return self.path.next_step()

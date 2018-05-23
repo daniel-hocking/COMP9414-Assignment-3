@@ -23,7 +23,7 @@ class Search:
     Used to determine if moving from current_pos to new_pos is valid based on
     the current game_state, the game_state is a list containing:
     have_axe, have_key, have_treasure, num_stones_held, have_raft, cross_divide, 
-    on_raft, stone_loc, waste_trees
+    on_raft, stone_loc, waste_trees, use_stones
     '''
     def _valid_move(self, current_pos, new_pos, game_state):
         current_tile = self.game_map.map[current_pos[1]][current_pos[0]]
@@ -40,7 +40,8 @@ class Search:
             return False
         if current_tile == '~' and new_tile != '~' and game_state[5]:
             game_state[6] = False
-        if current_tile != '~' and new_tile == '~' and not game_state[5]:
+        if current_tile != '~' and new_tile == '~' and \
+                (not game_state[5] and not (game_state[3] and game_state[9])):
             return False
         if current_tile != '~' and new_tile == '~' and game_state[3]:
             game_state[3] -= 1
@@ -102,9 +103,10 @@ class Search:
     change based on movements made during the search, this function sets up
     the initial game_state
     '''
-    def _setup_game_state(self, cross_divide, prev_state, waste_trees=False):
+    def _setup_game_state(self, cross_divide, prev_state, waste_trees=False, use_stones=False):
         game_state = [self.player.have_axe, self.player.have_key, self.player.have_treasure,
-                      self.player.num_stones_held, self.player.have_raft, cross_divide, self.player.on_raft, (), waste_trees]
+                      self.player.num_stones_held, self.player.have_raft, cross_divide,
+                      self.player.on_raft, (), waste_trees, use_stones]
         if prev_state is not None:
             game_state = list(prev_state)
         return game_state

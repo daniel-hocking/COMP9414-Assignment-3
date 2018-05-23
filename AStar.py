@@ -28,8 +28,8 @@ class AStar(Search):
     prev_state: when simulating chained goals this is the initial state, if none
         then use current player state
     '''
-    def perform_a_star_search(self, goal_coords, start_pos=None, cross_divide=False, prev_state=None):
-        game_state = self._setup_game_state(cross_divide, prev_state, True)
+    def perform_a_star_search(self, goal_coords, start_pos=None, cross_divide=False, prev_state=None, waste_trees=False):
+        game_state = self._setup_game_state(cross_divide, prev_state, waste_trees)
         if start_pos is None:
             player_pos = self.player.get_position()
             start_pos = (player_pos[0], player_pos[1])
