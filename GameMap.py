@@ -22,9 +22,12 @@ class GameMap:
         self.player = player
         # Store game world in a defaultdict as unsure of dimensions
         self.map = defaultdict(lambda: defaultdict(str))
-        # Keep track of map dimensions
+        # Keep track of dimensions explored
         self.max_x = self.max_y = 0
         self.min_x = self.min_y = 200
+        # Keep track of hard boundaries
+        self.min_bound_x = self.min_bound_y = 0
+        self.max_bound_x = self.max_bound_y = 200
         # Keep track of location of gold if it is found
         self.gold_loc = None
         # Keep track of location of POI's
@@ -51,6 +54,8 @@ class GameMap:
             for j in range(5):
                 if not (i == 2 and j == 2):
                     self._update_map_loc((pos_x + j, pos_y + i), view[i][j])
+                    if view[i][j] == '.':
+                        self._update_boundaries((pos_x + j, pos_y + i), j, i)
 
     '''
     Call after every move to show the current world map based on agents knowledge
@@ -103,12 +108,12 @@ class GameMap:
     '''
     def any_unexplored_nearby(self, pos, radius = 0):
         if not radius:
-            return self.map[pos[1]][pos[0]] == ''
+            return self.map[pos[1]][pos[0]] == '' and self._position_in_map_bounds(pos)
         pos_x = pos[0] - radius
         pos_y = pos[1] - radius
         for i in range(1 + (radius * 2)):
             for j in range(1 + (radius * 2)):
-                if self.map[pos_y + i][pos_x + j] == '':
+                if self.map[pos_y + i][pos_x + j] == '' and self._position_in_map_bounds((pos_x + j, pos_y + i)):
                     return True
 
     '''
@@ -180,6 +185,30 @@ class GameMap:
         self.max_y = max((self.max_y, position[1] + 2))
         self.min_x = min((self.min_x, position[0] - 2))
         self.min_y = min((self.min_y, position[1] - 2))
+
+    '''
+    Used to track the boundaries of the map if they have been explored
+    '''
+    def _update_boundaries(self, position, x_rel, y_rel):
+        radius = 2
+        if x_rel > radius and (y_rel - radius) == 0:
+            self.max_bound_x = min((position[0], self.max_bound_x))
+        if x_rel < radius and (y_rel - radius) == 0:
+            self.min_bound_x = max((position[0], self.min_bound_x))
+
+        if y_rel > radius and (x_rel - radius) == 0:
+            self.max_bound_y = min((position[1], self.max_bound_y))
+        if y_rel < radius and (x_rel - radius) == 0:
+            self.min_bound_y = max((position[1], self.min_bound_y))
+
+    '''
+    Test if a position is within the known boundaries of the map
+    '''
+    def _position_in_map_bounds(self, position):
+        if self.min_bound_x < position[0] < self.max_bound_x and \
+                self.min_bound_y < position[1] < self.max_bound_y:
+            return True
+        return False
 
     '''
     Rotate view to face north, as the data will come from the server relative

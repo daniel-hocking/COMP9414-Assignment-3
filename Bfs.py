@@ -36,6 +36,7 @@ class Bfs(Search):
         # to both ends
         queue = deque()
         explored = set()
+        explored_state = set()
         if pos is None:
             pos = self.player.get_position()
         # Must store game_state along with the path otherwise item use/pickups
@@ -45,6 +46,7 @@ class Bfs(Search):
         # This greatly reduces number of tiles visited (only ever visit each once)
         # But it also means the path may not be the most direct
         explored.add((pos[0], pos[1]))
+        explored_state.add((pos[0], pos[1], tuple(game_state)))
         found = False
         while len(queue):
             path, game_state = queue.popleft()
@@ -64,14 +66,16 @@ class Bfs(Search):
                         self.game_map.any_unexplored_nearby(new_pos, expand_search):
                     found = True
                     break
-                if new_pos not in explored:
-                    new_game_state = list(game_state)
-                    if self._valid_move(pos, new_pos, new_game_state):
+                new_game_state = list(game_state)
+                if self._valid_move(pos, new_pos, new_game_state):
+                    new_pos_state = (new_pos[0], new_pos[1], tuple(new_game_state))
+                    if new_pos_state not in explored_state:
                         queue.append((path + [new_pos], new_game_state))
                         explored.add(new_pos)
+                        explored_state.add(new_pos_state)
 
             if found:
-                return path
+                return path, game_state
         if get_explored:
             return explored
         return None

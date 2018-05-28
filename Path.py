@@ -52,13 +52,15 @@ class Path:
         path = []
         start_pos = self.player.get_position()
         for goal in goals:
-            a_star_search = self.a_star.perform_a_star_search(goal, (start_pos[0], start_pos[1]), cross_divide, prev_state, waste_trees)
-            if a_star_search is None:
+            #search = self.a_star.perform_a_star_search(goal, (start_pos[0], start_pos[1]), cross_divide, prev_state, waste_trees)
+            search = self.bfs.perform_bfs_search((start_pos[0], start_pos[1]), [goal],
+                        cross_divide=cross_divide, prev_state=prev_state, waste_trees=waste_trees)
+            if search is None:
                 path = None
                 break
-            start_pos = a_star_search[0][-1]
-            path = path + a_star_search[0][1::]
-            prev_state = a_star_search[1]
+            start_pos = search[0][-1]
+            path = path + search[0][1::]
+            prev_state = search[1]
 
         return path
 
@@ -70,9 +72,10 @@ class Path:
         path = None
         poi_list = self.game_map.find_nearest_poi(self.game_map.find_poi_list())
         for poi in poi_list:
-            a_star_search = self.a_star.perform_a_star_search((poi[0], poi[1]), cross_divide=cross_divide)
-            if a_star_search:
-                path = a_star_search[0][1::]
+            #search = self.a_star.perform_a_star_search((poi[0], poi[1]), cross_divide=cross_divide)
+            search = self.bfs.perform_bfs_search(goal_coords=[(poi[0], poi[1])], cross_divide=cross_divide)
+            if search:
+                path = search[0][1::]
                 break
 
         return self._update_path(path)
@@ -87,7 +90,7 @@ class Path:
         for search_radius in range(3):
             bfs_search = self.bfs.perform_bfs_search(cross_divide=cross_divide, expand_search=search_radius, waste_trees=waste_trees)
             if bfs_search:
-                path = bfs_search[1::]
+                path = bfs_search[0][1::]
                 break
 
         return self._update_path(path)
@@ -101,7 +104,7 @@ class Path:
         path = None
         bfs_search = self.bfs.perform_bfs_search(goal_coords=inaccessible_region, use_stones=True)
         if bfs_search:
-            path = bfs_search[1::]
+            path = bfs_search[0][1::]
         return self._update_path(path)
 
     '''

@@ -60,6 +60,7 @@ import socket
 from Player import Player
 from GameMap import GameMap
 from Goals import Goals
+from time import sleep
 
 '''
 Takes the 24 bytes received by the server and prints them in human-readable 
@@ -148,7 +149,7 @@ if __name__ == '__main__':
             sys.exit()
         #print_view(data)
         game_map.update_map(data)
-        #game_map.print_map()
+        game_map.print_map()
 
         #action = get_action()
         action = goals.find_next_goal()
@@ -157,3 +158,4 @@ if __name__ == '__main__':
         player.player_action(action)
 
         socket.send(str.encode(action))
+        #sleep(0.1)
