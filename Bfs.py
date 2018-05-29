@@ -19,8 +19,6 @@ class Bfs(Search):
 
     '''
     This function carries out the modified BFS, it has a number of optional parameters
-    A lot of the options were previously used for finding POI's but this was later
-    changed to use A* search instead
     pos: is the start position if none supplied will use current position
     goal_coords: is a list of goal coords if none supplied will look for unexplored areas
     cross_divide: is search allowed to cross between land -> water or the reverse

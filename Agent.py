@@ -13,13 +13,20 @@ Basic structure:
     continually find steps until a solution has been found
 - Player.py: contains the Player class which is used to store the current status
     of player and also some additional helper functions
-- GameMap.py: contains the GameMape class which is used to store the map of the game
+- GameMap.py: contains the GameMap class which is used to store the map of the game
     world and also some additional helper functions
 - Goals.py: contains the Goals class which is used to keep track of game goals
 - Path.py: contains the Path class which is used to find the optimal path to a goal
 - Search.py: contains the Search class which is the base class used to find paths
 - Bfs.py: contains the Bfs class which extends the Search class and implements BFS
-- AStar.py: contains the AStar class which extends the Search class and implements A*
+- (No longer used)AStar.py: contains the AStar class which extends the Search class
+    and implements A*, retained for historical reasons but this is not currently
+    being used as it didn't work well when the required path was complex, the
+    heuristic directed it towards the goal but in some instances the required path
+    was to move away from the goal and collect additional items
+- (Removed)IdaStar.py: contains the IdaStar class which extends the Search class
+    and implements IDA*, it was removed during early testing as was way too slow
+    to be useful for pathfinding
 
 Description:
 The basic control loop of the program is as follows:
@@ -40,19 +47,43 @@ can quickly be located and ranked when they are needed
 hasn't been updated
 - The top priority goal is to look for a path to obtain the treasure and return
 to the start, so it will first try to create a valid path for this
-    To do this A* search is carried out using the Manhattan distance for the
-    heuristic, it performs the search twice first starting from the current
-    position with the current game state and with the treasure as the goal
-    state, and then a second search starts using that new location and state
-    to find a path back to the start, further implementation details can be
-    found in the Astar.py file
+    To do this BFS is carried out, it performs the search twice first starting
+    from the current position with the current game state and with the treasure
+    as the goal state, and then a second search starts using that new location
+    and state to find a path back to the start, further implementation details
+    can be found in the Bfs.py file
 - The second priority goal is when the treasure has already been obtained then
 try to find a path back to the start, this would usually not happen as a full
 path to get the treasure and return would have already been plotted, but this
 is a simple extra case just in case something happened to the existing path
-    It also uses the same style of A* seach but with only one goal
+    It also uses the same style of BFS but with only one goal
+- The third priority is to collect POI's that have known locations, to do this:
+    Start by taking the sets of known POI locations and add the relevant ones
+    to a combined list of locations (relevant as in no axes when already have one)
+    Sort the list based on Manhattan distance from current location
+    Perform successfive BFS until a path is found to one of the POI
+- The final priority is to explore the map, again this will use BFS to find a path
+but it will also check if the path leads to a location that is close enough
+to an unexplored area that it will uncover new information
+- Paths to POI or unexplored areas will start by searching non-desctructively,
+this means that stones won't be used, trees won't be cut down after already
+having a raft, and water won't be traversed, these actions are only taken when
+it is known that a path can be found to the treasure and back, or if all other
+options have been exhausted. In the event that the non-destructive search for
+a path to unexplored areas fails, the extended_searches function is called to
+start additional searches that make progressively less promising searches
+until a path is found
+- After a path is found this is converted into a set of actions that needs to
+be transmitted to the server so that the agent can carry out the path
 
-
+Issues:
+There is a tradoff to be made between searching all possibilties or cutting off less
+likely options to speed things up, in most cases backtracking down the same path is
+not desirable and removing the option helps reduce the search space, but s6.in is an
+example of when stones need to be placed exactly right so that they can be used to
+access not just one island but a second one later on, my current search technique
+doesn't allow for this and when I let it do this the time taken is too slow to
+be useful.
 '''
 
 import sys
@@ -60,7 +91,6 @@ import socket
 from Player import Player
 from GameMap import GameMap
 from Goals import Goals
-from time import sleep
 
 '''
 Takes the 24 bytes received by the server and prints them in human-readable 
@@ -149,7 +179,7 @@ if __name__ == '__main__':
             sys.exit()
         #print_view(data)
         game_map.update_map(data)
-        game_map.print_map()
+        #game_map.print_map()
 
         #action = get_action()
         action = goals.find_next_goal()
@@ -158,4 +188,3 @@ if __name__ == '__main__':
         player.player_action(action)
 
         socket.send(str.encode(action))
-        #sleep(0.1)

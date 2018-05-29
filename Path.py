@@ -17,8 +17,10 @@ class Path:
         self.game_map = game_map
         # Keep a reference to the player object
         self.player = game_map.player
-        # Create new AStar object and keep reference to it
-        self.a_star = AStar(self.game_map)
+        # Previously A* search was used to find specific goals like finiding the
+        # path to the treasure or to a POI, but this was changed to BFS as it proved
+        # better for finding more intricate routes
+        #self.a_star = AStar(self.game_map)
         # Create new Bfs object and keep reference to it
         self.bfs = Bfs(self.game_map)
         # Used to store the path as a set of coords
@@ -27,8 +29,8 @@ class Path:
         self.steps = []
 
     '''
-    This function takes a list of goal positions and then performs successive A*
-    searches keeping track of state to find a path to each of the goals in turn.
+    This function takes a list of goal positions and then performs successive BFS
+    keeping track of state to find a path to each of the goals in turn.
     Is mainly used to find a path from current position to treasure and then back
     to the start
     '''
@@ -66,7 +68,7 @@ class Path:
 
     '''
     Gets a list of all relevant and known POI and ranks by distance from current
-    location, then performs A* search until it finds a path to one of the POI
+    location, then performs BFS until it finds a path to one of the POI
     '''
     def find_path_to_poi(self, cross_divide=False):
         path = None
@@ -81,7 +83,7 @@ class Path:
         return self._update_path(path)
 
     '''
-    Uses the simplified BFS search to try and find a path to the nearest 
+    Uses the simplified BFS to try and find a path to the nearest 
     unexplored area, if can't directly reach will start to look for areas
     that are close to unxplored regions
     '''
