@@ -179,7 +179,7 @@ if __name__ == '__main__':
             sys.exit()
         #print_view(data)
         game_map.update_map(data)
-        #game_map.print_map()
+        game_map.print_map()
 
         #action = get_action()
         action = goals.find_next_goal()

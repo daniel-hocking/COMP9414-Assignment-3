@@ -27,8 +27,9 @@ class Bfs(Search):
     expand_search: if > 0 then only need to get within n tiles of the goal state
     waste_trees: can trees be cut down when a raft is already held
     '''
-    def perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False, prev_state=None,
-                           expand_search=0, waste_trees=False, get_explored=False, use_stones=False):
+    def perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False,
+                           prev_state=None, expand_search=0, waste_trees=False,
+                           get_explored=False, use_stones=False, backtrack=False):
         game_state = self._setup_game_state(cross_divide, prev_state, waste_trees, use_stones)
         # Minor efficiency improvement by using a deque which has fast access
         # to both ends
@@ -46,9 +47,10 @@ class Bfs(Search):
         explored.add((pos[0], pos[1]))
         explored_state.add((pos[0], pos[1], tuple(game_state)))
         found = False
+        count = 0
         while len(queue):
             path, game_state = queue.popleft()
-            directions = self._new_directions(path)
+            directions = self._new_directions(path, backtrack and game_state[10])
             pos = path[-1]
             # Now check each of the four possible directions
             # Add to path if not in explored and a possible move
@@ -61,7 +63,10 @@ class Bfs(Search):
                     break
                 # Check if new position is unexplored, this is the goal
                 if not get_explored and goal_coords is None and \
+                        (not expand_search or self._valid_move(pos, new_pos, game_state)) and \
                         self.game_map.any_unexplored_nearby(new_pos, expand_search):
+                    if expand_search:
+                        path.append(new_pos)
                     found = True
                     break
                 new_game_state = list(game_state)

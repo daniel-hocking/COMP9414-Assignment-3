@@ -34,29 +34,29 @@ class Path:
     Is mainly used to find a path from current position to treasure and then back
     to the start
     '''
-    def find_path_to_goal(self, goals):
+    def find_path_to_goal(self, goals, backtrack=False):
         # Start by looking for any possible path, if one is found then see if
         # there is something less destructive, this stops the path from cutting
         # down trees or crossing water when it merely saves a few steps
-        path = self._find_path_to_goal(goals)
-        if path is not None:
+        path = self._find_path_to_goal(goals, backtrack=backtrack)
+        '''if path is not None:
             path_no_tree = self._find_path_to_goal(goals, waste_trees=False)
             if path_no_tree is not None:
                 path = path_no_tree
                 path_no_water = self._find_path_to_goal(goals, False, False)
                 if path_no_water is not None:
-                    path = path_no_water
+                    path = path_no_water'''
 
         return self._update_path(path)
 
-    def _find_path_to_goal(self, goals, cross_divide = True, waste_trees = True):
+    def _find_path_to_goal(self, goals, cross_divide=True, waste_trees=True, backtrack=False):
         prev_state = None
         path = []
         start_pos = self.player.get_position()
         for goal in goals:
             #search = self.a_star.perform_a_star_search(goal, (start_pos[0], start_pos[1]), cross_divide, prev_state, waste_trees)
             search = self.bfs.perform_bfs_search((start_pos[0], start_pos[1]), [goal],
-                        cross_divide=cross_divide, prev_state=prev_state, waste_trees=waste_trees)
+                        cross_divide=cross_divide, prev_state=prev_state, waste_trees=waste_trees, backtrack=backtrack)
             if search is None:
                 path = None
                 break

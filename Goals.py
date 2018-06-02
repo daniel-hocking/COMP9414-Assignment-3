@@ -51,6 +51,14 @@ class Goals:
             return self.path.next_step()
 
     def extended_searches(self):
+        # Allow backtracking when searching for path to gold
+        gold_loc = self.game_map.gold_loc
+        if gold_loc and not self.player.have_treasure:
+            # Will try to find a route from current position to gold then back to start
+            goals = [gold_loc, self.player.get_start_position()]
+            if self.path.find_path_to_goal(goals, backtrack=True):
+                self.winning_path = True
+                return self.path.next_step()
         # Allow POI search to cross land -> water divide
         if self.path.find_path_to_poi(cross_divide=True):
             return self.path.next_step()

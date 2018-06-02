@@ -23,13 +23,15 @@ class Search:
     Used to determine if moving from current_pos to new_pos is valid based on
     the current game_state, the game_state is a list containing:
     have_axe, have_key, have_treasure, num_stones_held, have_raft, cross_divide, 
-    on_raft, stone_loc, waste_trees, use_stones
+    on_raft, stone_loc, waste_trees, use_stones, should_backtrack
     '''
     def _valid_move(self, current_pos, new_pos, game_state):
         current_tile = self.game_map.map[current_pos[1]][current_pos[0]]
         new_tile = self.game_map.map[new_pos[1]][new_pos[0]]
         on_raft = game_state[6]
         stone_locs = list(game_state[7])
+        game_state[10] = False
+
         if current_pos in stone_locs:
             current_tile = 'O'
         if new_pos in stone_locs:
@@ -53,15 +55,20 @@ class Search:
             game_state[6] = True
             return True
         if new_tile == 'a':
+            if not game_state[0]:
+                game_state[10] = True
             game_state[0] = True
             return True
         if new_tile == 'k':
+            if not game_state[1]:
+                game_state[10] = True
             game_state[1] = True
             return True
         if new_tile == '$':
             game_state[2] = True
             return True
         if new_tile == 'o':
+            game_state[10] = True
             game_state[3] += 1
             stone_locs.append(new_pos)
             game_state[7] = tuple(stone_locs)
@@ -81,8 +88,8 @@ class Search:
     Will find what the new positions should be relative to current location
     will try to keep going forward if possible
     '''
-    def _new_directions(self, path):
-        if len(path) > 1:
+    def _new_directions(self, path, backtrack=False):
+        if not backtrack and len(path) > 1:
             pre_pos = path[-2]
             pos = path[-1]
             pos_change = (pos[0] - pre_pos[0], pos[1] - pre_pos[1])
@@ -106,7 +113,7 @@ class Search:
     def _setup_game_state(self, cross_divide, prev_state, waste_trees=False, use_stones=False):
         game_state = [self.player.have_axe, self.player.have_key, self.player.have_treasure,
                       self.player.num_stones_held, self.player.have_raft, cross_divide,
-                      self.player.on_raft, (), waste_trees, use_stones]
+                      self.player.on_raft, (), waste_trees, use_stones, False]
         if prev_state is not None:
             game_state = list(prev_state)
         return game_state
