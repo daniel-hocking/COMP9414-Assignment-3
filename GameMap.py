@@ -74,7 +74,7 @@ class GameMap:
     Based on known POI locations find the locations of those that are relevant
     ie. Don't care about axe after already have one
     '''
-    def find_poi_list(self):
+    def find_poi_list(self, cross_divide=False):
         possible_poi = []
         if not self.player.have_axe and len(self.axe_loc):
             possible_poi += list(self.axe_loc)
@@ -82,10 +82,10 @@ class GameMap:
             possible_poi += list(self.key_loc)
         if self.player.have_key and len(self.door_loc):
             possible_poi += list(self.door_loc)
-        if len(self.stone_loc):
+        if len(self.stone_loc) and cross_divide:
             possible_poi += list(self.stone_loc)
         if not self.player.have_raft and not self.player.on_raft and self.player.have_axe \
-           and len(self.tree_loc):
+           and len(self.tree_loc) and cross_divide:
             possible_poi += list(self.tree_loc)
         return possible_poi
 

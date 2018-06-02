@@ -61,7 +61,10 @@ is a simple extra case just in case something happened to the existing path
     Start by taking the sets of known POI locations and add the relevant ones
     to a combined list of locations (relevant as in no axes when already have one)
     Sort the list based on Manhattan distance from current location
-    Perform successfive BFS until a path is found to one of the POI
+    Perform successive BFS until a path is found to one of the POI
+    It will also try to avoice picking up stones and cutting down trees until it
+    reaches the point where all land has been explored, this helps to avoid
+    unwinnable situations where stones might be needed later on for example
 - The final priority is to explore the map, again this will use BFS to find a path
 but it will also check if the path leads to a location that is close enough
 to an unexplored area that it will uncover new information
@@ -179,7 +182,7 @@ if __name__ == '__main__':
             sys.exit()
         #print_view(data)
         game_map.update_map(data)
-        game_map.print_map()
+        #game_map.print_map()
 
         #action = get_action()
         action = goals.find_next_goal()

@@ -39,13 +39,6 @@ class Path:
         # there is something less destructive, this stops the path from cutting
         # down trees or crossing water when it merely saves a few steps
         path = self._find_path_to_goal(goals, backtrack=backtrack)
-        '''if path is not None:
-            path_no_tree = self._find_path_to_goal(goals, waste_trees=False)
-            if path_no_tree is not None:
-                path = path_no_tree
-                path_no_water = self._find_path_to_goal(goals, False, False)
-                if path_no_water is not None:
-                    path = path_no_water'''
 
         return self._update_path(path)
 
@@ -72,7 +65,7 @@ class Path:
     '''
     def find_path_to_poi(self, cross_divide=False):
         path = None
-        poi_list = self.game_map.find_nearest_poi(self.game_map.find_poi_list())
+        poi_list = self.game_map.find_nearest_poi(self.game_map.find_poi_list(cross_divide))
         for poi in poi_list:
             #search = self.a_star.perform_a_star_search((poi[0], poi[1]), cross_divide=cross_divide)
             search = self.bfs.perform_bfs_search(goal_coords=[(poi[0], poi[1])], cross_divide=cross_divide)

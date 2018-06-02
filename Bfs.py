@@ -22,10 +22,15 @@ class Bfs(Search):
     pos: is the start position if none supplied will use current position
     goal_coords: is a list of goal coords if none supplied will look for unexplored areas
     cross_divide: is search allowed to cross between land -> water or the reverse
+        also allows for stones to be picked up/first tree to be cut down
     prev_state: when simulating chained goals this is the initial state, if none
         then use current player state
     expand_search: if > 0 then only need to get within n tiles of the goal state
     waste_trees: can trees be cut down when a raft is already held
+    get_explored: return the set containing what was explored
+    use_stones: it is okay to use stones when exploring
+    backtrack: it is okay to go directly back the way you came if you just picked
+        up some useful item
     '''
     def perform_bfs_search(self, pos=None, goal_coords=None, cross_divide=False,
                            prev_state=None, expand_search=0, waste_trees=False,

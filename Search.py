@@ -23,19 +23,21 @@ class Search:
     Used to determine if moving from current_pos to new_pos is valid based on
     the current game_state, the game_state is a list containing:
     have_axe, have_key, have_treasure, num_stones_held, have_raft, cross_divide, 
-    on_raft, stone_loc, waste_trees, use_stones, should_backtrack
+    on_raft, stone_tree_loc, waste_trees, use_stones, should_backtrack
     '''
     def _valid_move(self, current_pos, new_pos, game_state):
         current_tile = self.game_map.map[current_pos[1]][current_pos[0]]
         new_tile = self.game_map.map[new_pos[1]][new_pos[0]]
         on_raft = game_state[6]
-        stone_locs = list(game_state[7])
+        stone_tree_loc = list(game_state[7])
         game_state[10] = False
 
-        if current_pos in stone_locs:
+        if current_pos in stone_tree_loc:
             current_tile = 'O'
-        if new_pos in stone_locs:
+        if new_pos in stone_tree_loc:
             new_tile = 'O'
+        if new_tile in ['o', 'T'] and not game_state[5]:
+            return False
         if current_tile == '~' and new_tile == '~' and game_state[6]:
             return True
         if current_tile == '~' and new_tile != '~' and not game_state[5]:
@@ -47,8 +49,8 @@ class Search:
             return False
         if current_tile != '~' and new_tile == '~' and game_state[3]:
             game_state[3] -= 1
-            stone_locs.append(new_pos)
-            game_state[7] = tuple(stone_locs)
+            stone_tree_loc.append(new_pos)
+            game_state[7] = tuple(stone_tree_loc)
             return True
         if current_tile != '~' and new_tile == '~' and game_state[4]:
             game_state[4] = False
@@ -70,13 +72,17 @@ class Search:
         if new_tile == 'o':
             game_state[10] = True
             game_state[3] += 1
-            stone_locs.append(new_pos)
-            game_state[7] = tuple(stone_locs)
+            stone_tree_loc.append(new_pos)
+            game_state[7] = tuple(stone_tree_loc)
             return True
         if new_tile == 'T' and game_state[0] and not game_state[4] and not on_raft:
             game_state[4] = True
+            stone_tree_loc.append(new_pos)
+            game_state[7] = tuple(stone_tree_loc)
             return True
         if new_tile == 'T' and game_state[0] and game_state[8]:
+            stone_tree_loc.append(new_pos)
+            game_state[7] = tuple(stone_tree_loc)
             return True
 
         if (new_tile == '-' and game_state[1]) or \
